@@ -17,6 +17,7 @@ console.log("connected db");
     try{
         await client.connect()
         const WaltonCollections = client.db("WaltonCollection").collection("Products")
+        const AllUsers = client.db("WaltonCollection").collection("users")
 
         app.get("/",(req,res)=>{
             res.send("this is successfull")
@@ -41,7 +42,6 @@ console.log("connected db");
             res.send({success:"find Successfullu", product:product})
         })
 
-        app.get("")
 
         // for deliver products
         app.put("/updateproduct/:id",async(req,res)=>{
@@ -78,7 +78,23 @@ console.log("connected db");
             res.send(result)
         })
 
-        // for update products
+
+        app.post("/signup", async(req,res)=>{
+            const newusers = req.body
+            const result = await AllUsers.insertOne(newusers)
+            console.log("add",result);
+            res.send(result)
+        })
+
+        // Per User Items
+        app.get("/items",async(req,res)=>{
+            const email = req.query.email
+            console.log(email);
+            const query = {email}
+            const cursor = WaltonCollections.find(query)
+            const users = await cursor.toArray()
+            res.send({success:"successfully added",users:users})
+        })
     }
     finally{
 
