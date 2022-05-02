@@ -46,9 +46,27 @@ console.log("connected db");
         // for deliver products
         app.put("/updateproduct/:id",async(req,res)=>{
             const id = req.params.id
+            console.log(req.query.data);
             let previusQty=parseInt(req.body.qty)
             const deliverQty = parseInt(req.body.deliverQty)
             previusQty = previusQty-deliverQty
+            const filter = {_id:ObjectId(id)}
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    qty:previusQty
+                }
+              };
+              const result = await WaltonCollections.updateOne(filter,updateDoc,options)
+              console.log();
+            res.send({succrssfull:"successfull",result:result})            
+        })
+
+        app.put("/updateproducts/:id",async(req,res)=>{
+            const id = req.params.id
+            let previusQty=parseInt(req.body.qty)
+            const deliverQty = parseInt(req.body.deliverQty)
+            previusQty = previusQty+deliverQty
             const filter = {_id:ObjectId(id)}
             const options = { upsert: true };
             const updateDoc = {
