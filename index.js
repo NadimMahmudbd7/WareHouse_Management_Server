@@ -98,10 +98,10 @@ async function run() {
             console.log(decoded.email);
             if(decoded.email===email){
                 const result = await WaltonCollections.insertOne(newitem)
-                res.send({success:"Access Successfull",result:result})
+                res.send({success:"Added Successfull",result:result})
             }
             else{
-                res.send("Unauthorized Access")
+                res.send({success:"Unauthorized Access"})
             }
         })
 
