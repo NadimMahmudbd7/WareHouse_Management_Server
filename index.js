@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
 var jwt = require('jsonwebtoken');
+const res = require('express/lib/response');
 const app = express()
 const port = process.env.PORT || 4000
 
@@ -93,9 +94,15 @@ async function run() {
             const newitem = req.body
             const token =req.headers.authorization
             const[email,AccessToken] = token.split(" ")
-            if()
-            const result = await WaltonCollections.insertOne(newitem)
-            res.send(result)
+            const decoded = VerifyAccess(AccessToken)
+            console.log(decoded.email);
+            if(decoded.email===email){
+                const result = await WaltonCollections.insertOne(newitem)
+                res.send({success:"Access Successfull",result:result})
+            }
+            else{
+                res.send("Unauthorized Access")
+            }
         })
 
 
@@ -114,7 +121,6 @@ async function run() {
         // ..................................// Per User Item //...........................................................//
         app.get("/items", async (req, res) => {
             const email = req.query.email
-            console.log(email);
             const query = { email }
             const cursor = WaltonCollections.find(query)
             const users = await cursor.toArray()
@@ -125,7 +131,6 @@ async function run() {
         app.post("/login",(req,res)=>{
            const email =req.body;
            const token = jwt.sign(email, process.env.ACCESS_TOKEN);
-           console.log(token);
            res.send({token})
         })
     }
@@ -139,5 +144,18 @@ run().catch(console.dir)
 app.listen(port, () => {
     console.log("Listening port", port);
 })
+
+function VerifyAccess(token){
+    let email;
+    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded) {
+        if(err){
+           email="Invalid Email"
+        }
+        if(decoded){
+            email=decoded
+        }
+      });
+      return email
+}
 
 
