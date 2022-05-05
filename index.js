@@ -4,6 +4,7 @@ require('dotenv').config()
 var jwt = require('jsonwebtoken');
 const res = require('express/lib/response');
 const app = express()
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 4000
 
 app.use(cors())
@@ -12,7 +13,6 @@ app.use(express.json())
 
 async function run() {
 
-    const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
     const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASSWORD}@cluster0.ambpg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
     console.log("connected db");
