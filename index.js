@@ -2,14 +2,23 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
 var jwt = require('jsonwebtoken');
-// const res = require('express/lib/response');
+const res = require('express/lib/response');
 const app = express()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 4000
 
 app.use(cors())
 app.use(express.json())
-
+if (process.env.NODE_ENV === 'production') {
+    // Exprees will serve up production assets
+    app.use(express.static('client/build'));
+  
+    // Express serve up index.html file if it doesn't recognize route
+    const path = require('path');
+    app.get('*', (req, res) => {
+      res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+    });
+  }
 
 async function run() {
 
