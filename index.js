@@ -31,7 +31,7 @@ async function run() {
         await client.connect()
         const WaltonCollections = client.db("WaltonCollection").collection("Products")
 
-        
+
 
 
 
@@ -63,16 +63,16 @@ async function run() {
         app.put("/updateproduct/:id", async (req, res) => {
             const id = req.params.id
             let previusQty = parseInt(req.body.qty)
-            console.log(previusQty);
             if (previusQty < 1) {
                 res.send({ error: "Sold Out" })
             }
             else {
                 const deliverQty = parseInt(req.body.deliverQty)
                 console.log(deliverQty);
-                if (previusQty < deliverQty) {
+                if (previusQty < deliverQty || deliverQty <= 0 ) {
                     res.send({ error: "You Haven't Enough Quentity For Deliver" })
                 }
+                
                 else {
                     previusQty = previusQty - deliverQty
                     const filter = { _id: ObjectId(id) }
@@ -96,16 +96,22 @@ async function run() {
             const id = req.params.id
             let previusQty = parseInt(req.body.qty)
             const deliverQty = parseInt(req.body.deliverQty)
-            previusQty = previusQty + deliverQty
-            const filter = { _id: ObjectId(id) }
-            const options = { upsert: true };
-            const updateDoc = {
-                $set: {
-                    qty: previusQty
-                }
-            };
-            const result = await WaltonCollections.updateOne(filter, updateDoc, options)
-            res.send({ successfull: "successfull", result: result })
+            if (deliverQty <= 0) {
+                res.send({ error: "Please Add Positive Qty" })
+            }
+            else {
+                previusQty = previusQty + deliverQty
+                const filter = { _id: ObjectId(id) }
+                const options = { upsert: true };
+                const updateDoc = {
+                    $set: {
+                        qty: previusQty
+                    }
+                };
+                const result = await WaltonCollections.updateOne(filter, updateDoc, options)
+                res.send({ successfull: "successfull", result: result })
+            }
+
         })
 
 
