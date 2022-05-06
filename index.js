@@ -9,7 +9,18 @@ const port = process.env.PORT || 4000
 
 app.use(cors())
 app.use(express.json())
-
+function VerifyAccess(token) {
+    let email;
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            email = "Invalid Email"
+        }
+        if (decoded) {
+            email = decoded
+        }
+    });
+    return email
+}
 
 async function run() {
 
@@ -20,9 +31,7 @@ async function run() {
         await client.connect()
         const WaltonCollections = client.db("WaltonCollection").collection("Products")
 
-        app.get("/", (req, res) => {
-            res.send("This website Is Running")
-        })
+        
 
 
 
@@ -53,19 +62,31 @@ async function run() {
 
         app.put("/updateproduct/:id", async (req, res) => {
             const id = req.params.id
-            console.log(req.query.data);
             let previusQty = parseInt(req.body.qty)
-            const deliverQty = parseInt(req.body.deliverQty)
-            previusQty = previusQty - deliverQty
-            const filter = { _id: ObjectId(id) }
-            const options = { upsert: true };
-            const updateDoc = {
-                $set: {
-                    qty: previusQty
+            console.log(previusQty);
+            if (previusQty < 1) {
+                res.send({ error: "Sold Out" })
+            }
+            else {
+                const deliverQty = parseInt(req.body.deliverQty)
+                console.log(deliverQty);
+                if (previusQty < deliverQty) {
+                    res.send({ error: "You Haven't Enough Quentity For Deliver" })
                 }
-            };
-            const result = await WaltonCollections.updateOne(filter, updateDoc, options)
-            res.send({ succrssfull: "successfull", result: result })
+                else {
+                    previusQty = previusQty - deliverQty
+                    const filter = { _id: ObjectId(id) }
+                    const options = { upsert: true };
+                    const updateDoc = {
+                        $set: {
+                            qty: previusQty
+                        }
+                    };
+                    const result = await WaltonCollections.updateOne(filter, updateDoc, options)
+                    res.send({ successfull: "successfull", result: result })
+                }
+            }
+
         })
 
 
@@ -84,7 +105,7 @@ async function run() {
                 }
             };
             const result = await WaltonCollections.updateOne(filter, updateDoc, options)
-            res.send({ succrssfull: "successfull", result: result })
+            res.send({ successfull: "successfull", result: result })
         })
 
 
@@ -92,16 +113,16 @@ async function run() {
 
         app.post("/products", async (req, res) => {
             const newitem = req.body
-            const token =req.headers.authorization
-            const[email,AccessToken] = token.split(" ")
+            const token = req.headers.authorization
+            const [email, AccessToken] = token.split(" ")
             const decoded = VerifyAccess(AccessToken)
             console.log(decoded.email);
-            if(decoded.email===email){
+            if (decoded.email === email) {
                 const result = await WaltonCollections.insertOne(newitem)
-                res.send({value:true, success:"Added Successfull",result:result})
+                res.send({ value: true, success: "Added Successfull", result: result })
             }
-            else{
-                res.send({value:false,success:"Unauthorized Access"})
+            else {
+                res.send({ value: false, success: "Unauthorized Access" })
             }
         })
 
@@ -128,10 +149,10 @@ async function run() {
         })
 
 
-        app.post("/login",(req,res)=>{
-           const email =req.body;
-           const token = jwt.sign(email, process.env.ACCESS_TOKEN);
-           res.send({token})
+        app.post("/login", (req, res) => {
+            const email = req.body;
+            const token = jwt.sign(email, process.env.ACCESS_TOKEN);
+            res.send({ token })
         })
     }
     finally {
@@ -141,21 +162,14 @@ async function run() {
 
 run().catch(console.dir)
 
+app.get("/", (req, res) => {
+    res.send("This website Is Running")
+})
+
 app.listen(port, () => {
     console.log("Listening port", port);
 })
 
-function VerifyAccess(token){
-    let email;
-    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded) {
-        if(err){
-           email="Invalid Email"
-        }
-        if(decoded){
-            email=decoded
-        }
-      });
-      return email
-}
+
 
 
